@@ -2,6 +2,7 @@
 
 ### Stories
 * [FCFIELDS-90](https://folio-org.atlassian.net/browse/FCFIELDS-90) - Upgrade folio-custom-fields to 4.0.0, provide `custom-fields` 3.2 (LOOKUP custom field type)
+* [FCFIELDS-95](https://folio-org.atlassian.net/browse/FCFIELDS-95) - Provide custom field sections (`/custom-field-sections`) of folio-custom-fields
 * [MODORDSTOR-533](https://folio-org.atlassian.net/browse/MODORDSTOR-533) - Create a script to populate "multiYearPayment" field for existing orders
 * [MODORDSTOR-522](https://folio-org.atlassian.net/browse/MODORDSTOR-522) - Support deprecated flag on acquisition methods
 
