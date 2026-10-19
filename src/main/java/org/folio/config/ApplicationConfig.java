@@ -22,9 +22,9 @@ import org.folio.rest.jaxrs.model.CreateInventoryType;
 import org.folio.rest.jaxrs.model.OrderLinePatchOperationType;
 import org.folio.service.UserService;
 import org.folio.services.batch.BatchTrackingService;
-import org.folio.services.claiming.ClaimingSequenceNormalizer;
-import org.folio.services.claiming.ClaimingSequenceService;
-import org.folio.services.claiming.ClaimingSequenceValidator;
+import org.folio.services.claiming.ClaimSequenceNormalizer;
+import org.folio.services.claiming.ClaimSequenceService;
+import org.folio.services.claiming.ClaimSequenceValidator;
 import org.folio.services.consortium.ConsortiumConfigurationService;
 import org.folio.services.inventory.HoldingsService;
 import org.folio.services.inventory.InstancesService;
@@ -228,19 +228,19 @@ public class ApplicationConfig {
   }
 
   @Bean
-  ClaimingSequenceNormalizer claimingSequenceNormalizer() {
-    return new ClaimingSequenceNormalizer();
+  ClaimSequenceNormalizer claimSequenceNormalizer() {
+    return new ClaimSequenceNormalizer();
   }
 
   @Bean
-  ClaimingSequenceValidator claimingSequenceValidator() {
-    return new ClaimingSequenceValidator();
+  ClaimSequenceValidator claimSequenceValidator() {
+    return new ClaimSequenceValidator();
   }
 
   @Bean
-  ClaimingSequenceService claimingSequenceService(ClaimingSequenceNormalizer claimingSequenceNormalizer,
-                                                  ClaimingSequenceValidator claimingSequenceValidator) {
-    return new ClaimingSequenceService(claimingSequenceNormalizer, claimingSequenceValidator);
+  ClaimSequenceService claimSequenceService(ClaimSequenceNormalizer claimSequenceNormalizer,
+                                                  ClaimSequenceValidator claimSequenceValidator) {
+    return new ClaimSequenceService(claimSequenceNormalizer, claimSequenceValidator);
   }
 
   @Bean

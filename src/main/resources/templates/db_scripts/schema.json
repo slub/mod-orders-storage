@@ -893,7 +893,7 @@
       ]
     },
     {
-      "tableName": "claiming_sequences",
+      "tableName": "claim_sequences",
       "fromModuleVersion": "mod-orders-storage-15.0.0",
       "withOptimisticLocking": "failOnConflict",
       "withMetadata": true,
