@@ -37,8 +37,8 @@ public class TestData {
     String DEFAULT = "mockdata/order-template-categories/amazon_book_orders.json";
   }
 
-  public interface ClaimingSequence {
-    String DEFAULT = "mockdata/claiming-sequences/serials_standard.json";
+  public interface ClaimSequence {
+    String DEFAULT = "mockdata/claim-sequences/serials_standard.json";
   }
 
   public interface AcquisitionsUnit {

@@ -3,7 +3,7 @@ package org.folio.rest.impl;
 import static io.restassured.RestAssured.given;
 
 import static org.folio.StorageTestSuite.storageUrl;
-import static org.folio.rest.utils.TestEntities.CLAIMING_SEQUENCE;
+import static org.folio.rest.utils.TestEntities.CLAIM_SEQUENCE;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -25,11 +25,11 @@ import org.folio.rest.utils.TestData;
 import org.junit.jupiter.api.Test;
 
 /**
- * Covers the rules of /orders-storage/claiming-sequences that the generic EntitiesCrudTest does not:
+ * Covers the rules of /orders-storage/claim-sequences that the generic EntitiesCrudTest does not:
  * stage numbering, stage validation, unique names, optimistic locking and the default sort.
  */
 @IsolatedTenant
-public class ClaimingSequencesAPITest extends TestBase {
+public class ClaimSequencesAPITest extends TestBase {
 
   private final Headers headers = getIsolatedTenantHeaders(UUID.randomUUID().toString());
 
@@ -42,19 +42,19 @@ public class ClaimingSequencesAPITest extends TestBase {
     stages.getJsonObject(2).put("stage", 2);
     stages.getJsonObject(3).remove("stage");
 
-    String id = createEntity(CLAIMING_SEQUENCE.getEndpoint(), sequence.encode(), headers);
+    String id = createEntity(CLAIM_SEQUENCE.getEndpoint(), sequence.encode(), headers);
 
     getSequence(id)
       .body("stages.stage", contains(1, 2, 3, 4, 5, 6))
       .body("stages.name", contains("1st claim", "2nd claim", "3rd claim",
         "1st phone reminder", "2nd phone reminder", "3rd phone reminder"));
     querySequences("name==\"Numbering\"")
-      .body("claimingSequences[0].stages.stage", contains(1, 2, 3, 4, 5, 6));
+      .body("claimSequences[0].stages.stage", contains(1, 2, 3, 4, 5, 6));
   }
 
   @Test
   void testReorderedStagesAreRenumbered() throws MalformedURLException {
-    String id = createEntity(CLAIMING_SEQUENCE.getEndpoint(), newSequence("Reorder").encode(), headers);
+    String id = createEntity(CLAIM_SEQUENCE.getEndpoint(), newSequence("Reorder").encode(), headers);
     JsonObject stored = new JsonObject(getSequence(id).extract().asString());
     JsonArray stages = stored.getJsonArray("stages");
     JsonObject first = stages.getJsonObject(0);
@@ -74,12 +74,12 @@ public class ClaimingSequencesAPITest extends TestBase {
     JsonObject sequence = newSequence("Same stage names");
     sequence.getJsonArray("stages").getJsonObject(2).put("name", "1st claim");
 
-    createEntity(CLAIMING_SEQUENCE.getEndpoint(), sequence.encode(), headers);
+    createEntity(CLAIM_SEQUENCE.getEndpoint(), sequence.encode(), headers);
   }
 
   @Test
   void testDuplicateSequenceNameIsRejected() throws MalformedURLException {
-    createEntity(CLAIMING_SEQUENCE.getEndpoint(), newSequence("Serials").encode(), headers);
+    createEntity(CLAIM_SEQUENCE.getEndpoint(), newSequence("Serials").encode(), headers);
 
     postSequence(newSequence("serials"))
       .statusCode(422)
@@ -99,7 +99,7 @@ public class ClaimingSequencesAPITest extends TestBase {
 
     postSequence(sequence)
       .statusCode(422)
-      .body("errors.code", contains("transmissionMethodRequired", "claimingSequenceStageNameRequired",
+      .body("errors.code", contains("transmissionMethodRequired", "claimSequenceStageNameRequired",
         "transmissionMethodNotAllowed"))
       .body("errors[0].parameters.find { it.key == 'stageName' }.value", equalTo("1st claim"))
       .body("errors[2].parameters.find { it.key == 'stage' }.value", equalTo("4"))
@@ -110,7 +110,7 @@ public class ClaimingSequencesAPITest extends TestBase {
   void testBlankSequenceNameIsRejected() throws MalformedURLException {
     postSequence(newSequence("   "))
       .statusCode(422)
-      .body("errors.code", contains("claimingSequenceNameRequired"));
+      .body("errors.code", contains("claimSequenceNameRequired"));
   }
 
   @Test
@@ -132,7 +132,7 @@ public class ClaimingSequencesAPITest extends TestBase {
     stages.getJsonObject(0).put("internalNote", "Sent by email").put("externalNote", "  ");
     stages.getJsonObject(3).put("externalNote", "Please call back");
 
-    String id = createEntity(CLAIMING_SEQUENCE.getEndpoint(), sequence.encode(), headers);
+    String id = createEntity(CLAIM_SEQUENCE.getEndpoint(), sequence.encode(), headers);
 
     JsonObject stored = new JsonObject(getSequence(id).extract().asString());
     JsonObject integration = stored.getJsonArray("stages").getJsonObject(0);
@@ -146,7 +146,7 @@ public class ClaimingSequencesAPITest extends TestBase {
 
   @Test
   void testOptimisticLocking() throws MalformedURLException {
-    String id = createEntity(CLAIMING_SEQUENCE.getEndpoint(), newSequence("Locking").encode(), headers);
+    String id = createEntity(CLAIM_SEQUENCE.getEndpoint(), newSequence("Locking").encode(), headers);
     JsonObject stored = new JsonObject(getSequence(id).extract().asString());
 
     putSequence(id, stored.copy().put("description", "first")).statusCode(204);
@@ -163,18 +163,18 @@ public class ClaimingSequencesAPITest extends TestBase {
   @Test
   void testCollectionIsSortedByNameByDefault() throws MalformedURLException {
     JsonObject inactive = newSequence("c").put("isActive", false);
-    createEntity(CLAIMING_SEQUENCE.getEndpoint(), newSequence("b").encode(), headers);
-    createEntity(CLAIMING_SEQUENCE.getEndpoint(), inactive.encode(), headers);
-    createEntity(CLAIMING_SEQUENCE.getEndpoint(), newSequence("A").encode(), headers);
-    createEntity(CLAIMING_SEQUENCE.getEndpoint(), newSequence("d").encode(), headers);
+    createEntity(CLAIM_SEQUENCE.getEndpoint(), newSequence("b").encode(), headers);
+    createEntity(CLAIM_SEQUENCE.getEndpoint(), inactive.encode(), headers);
+    createEntity(CLAIM_SEQUENCE.getEndpoint(), newSequence("A").encode(), headers);
+    createEntity(CLAIM_SEQUENCE.getEndpoint(), newSequence("d").encode(), headers);
 
-    querySequences(null).body("claimingSequences.name", contains("A", "b", "c", "d"));
-    querySequences("isActive==true").body("claimingSequences.name", contains("A", "b", "d"));
-    querySequences("cql.allRecords=1 sortBy name/sort.descending").body("claimingSequences.name", contains("d", "c", "b", "A"));
+    querySequences(null).body("claimSequences.name", contains("A", "b", "c", "d"));
+    querySequences("isActive==true").body("claimSequences.name", contains("A", "b", "d"));
+    querySequences("cql.allRecords=1 sortBy name/sort.descending").body("claimSequences.name", contains("d", "c", "b", "A"));
   }
 
   private JsonObject newSequence(String name) {
-    return new JsonObject(getFile(TestData.ClaimingSequence.DEFAULT))
+    return new JsonObject(getFile(TestData.ClaimSequence.DEFAULT))
       .put("id", UUID.randomUUID().toString())
       .put("name", name);
   }
@@ -185,15 +185,15 @@ public class ClaimingSequencesAPITest extends TestBase {
   }
 
   private ValidatableResponse postSequence(JsonObject sequence) throws MalformedURLException {
-    return postData(CLAIMING_SEQUENCE.getEndpoint(), sequence.encode(), headers).then().log().ifValidationFails();
+    return postData(CLAIM_SEQUENCE.getEndpoint(), sequence.encode(), headers).then().log().ifValidationFails();
   }
 
   private ValidatableResponse putSequence(String id, JsonObject sequence) throws MalformedURLException {
-    return putData(CLAIMING_SEQUENCE.getEndpointWithId(), id, sequence.encode(), headers).then().log().ifValidationFails();
+    return putData(CLAIM_SEQUENCE.getEndpointWithId(), id, sequence.encode(), headers).then().log().ifValidationFails();
   }
 
   private ValidatableResponse getSequence(String id) throws MalformedURLException {
-    return getDataById(CLAIMING_SEQUENCE.getEndpointWithId(), id, headers).then().log().ifValidationFails().statusCode(200);
+    return getDataById(CLAIM_SEQUENCE.getEndpointWithId(), id, headers).then().log().ifValidationFails().statusCode(200);
   }
 
   private ValidatableResponse querySequences(String cql) throws MalformedURLException {
@@ -201,7 +201,7 @@ public class ClaimingSequencesAPITest extends TestBase {
     if (cql != null) {
       request.queryParam("query", cql);
     }
-    return request.when().get(storageUrl(CLAIMING_SEQUENCE.getEndpoint())).then().log().ifValidationFails().statusCode(200);
+    return request.when().get(storageUrl(CLAIM_SEQUENCE.getEndpoint())).then().log().ifValidationFails().statusCode(200);
   }
 
 }

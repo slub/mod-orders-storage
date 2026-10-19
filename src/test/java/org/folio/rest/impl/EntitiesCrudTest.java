@@ -37,7 +37,7 @@ public class EntitiesCrudTest extends TestBase {
       TestEntities.PURCHASE_ORDER,
       TestEntities.ORDER_TEMPLATE,
       TestEntities.ORDER_TEMPLATE_CATEGORIES,
-      TestEntities.CLAIMING_SEQUENCE,
+      TestEntities.CLAIM_SEQUENCE,
       TestEntities.ACQUISITIONS_UNIT_MEMBERSHIPS,
       TestEntities.ACQUISITIONS_UNIT,
       TestEntities.ACQUISITION_METHOD,
