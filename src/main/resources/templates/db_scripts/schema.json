@@ -893,6 +893,17 @@
       ]
     },
     {
+      "tableName": "claiming_sequences",
+      "fromModuleVersion": "mod-orders-storage-15.0.0",
+      "withOptimisticLocking": "failOnConflict",
+      "withMetadata": true,
+      "uniqueIndex": [
+        {
+          "fieldName": "name"
+        }
+      ]
+    },
+    {
       "tableName": "order_templates",
       "fromModuleVersion": "mod-orders-storage-13.7.0",
       "withMetadata": false,

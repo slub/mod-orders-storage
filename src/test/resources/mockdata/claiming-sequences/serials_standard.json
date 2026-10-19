@@ -1,0 +1,54 @@
+{
+  "id": "9a7e5c3b-1d2f-4e6a-8b9c-0d1e2f3a4b5c",
+  "_version": 1,
+  "name": "Serials standard",
+  "description": "3 claims by email, then 3 phone reminders",
+  "stages": [
+    {
+      "stage": 1,
+      "name": "1st claim",
+      "deliveryType": "INTEGRATION",
+      "transmissionMethod": "Email",
+      "interval": 14,
+      "externalNote": "Please confirm the delivery date"
+    },
+    {
+      "stage": 2,
+      "name": "2nd claim",
+      "deliveryType": "INTEGRATION",
+      "transmissionMethod": "Email",
+      "interval": 14,
+      "externalNote": "Second reminder - please deliver or report the status"
+    },
+    {
+      "stage": 3,
+      "name": "3rd claim",
+      "deliveryType": "INTEGRATION",
+      "transmissionMethod": "Email",
+      "interval": 21,
+      "internalNote": "Last email - phone reminders follow"
+    },
+    {
+      "stage": 4,
+      "name": "1st phone reminder",
+      "deliveryType": "MANUAL",
+      "interval": 14,
+      "internalNote": "Call the vendor and record the answer"
+    },
+    {
+      "stage": 5,
+      "name": "2nd phone reminder",
+      "deliveryType": "MANUAL",
+      "interval": 14
+    },
+    {
+      "stage": 6,
+      "name": "3rd phone reminder",
+      "deliveryType": "MANUAL",
+      "interval": 21,
+      "internalNote": "Last stage - decide on cancellation afterwards"
+    }
+  ],
+  "afterLastStage": "STOP",
+  "isActive": true
+}
