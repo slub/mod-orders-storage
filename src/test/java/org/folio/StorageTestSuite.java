@@ -45,6 +45,7 @@ import org.folio.rest.core.RestClientTest;
 import org.folio.rest.impl.AcquisitionMethodDeprecatedQueryTest;
 import org.folio.rest.impl.BatchTrackingAPITest;
 import org.folio.rest.impl.ClaimingAPITest;
+import org.folio.rest.impl.ClaimSequencesAPITest;
 import org.folio.rest.impl.CustomFieldSectionsAPITest;
 import org.folio.rest.impl.CustomFieldsAPITest;
 import org.folio.rest.impl.CustomFieldsIndexesTest;
@@ -73,6 +74,7 @@ import org.folio.rest.persist.ExceptionUtilTest;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.client.test.HttpClientMock2;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.services.claiming.ClaimSequenceValidatorTest;
 import org.folio.services.consortium.ConsortiumConfigurationServiceTest;
 import org.folio.services.inventory.HoldingsServiceTest;
 import org.folio.services.inventory.InventoryUpdateServiceTest;
@@ -280,6 +282,10 @@ public class StorageTestSuite {
 
   @Nested
   class EntitiesCrudTestNested extends EntitiesCrudTest {}
+  @Nested
+  class ClaimSequencesAPITestNested extends ClaimSequencesAPITest {}
+  @Nested
+  class ClaimSequenceValidatorTestNested extends ClaimSequenceValidatorTest {}
   @Nested
   class OrdersAPITestNested extends OrdersAPITest {}
   @Nested

@@ -325,6 +325,37 @@
       ]
       },
     {
+      "id": "orders-storage.claim-sequences",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/orders-storage/claim-sequences",
+          "permissionsRequired": ["orders-storage.claim-sequences.collection.get"]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/orders-storage/claim-sequences",
+          "permissionsRequired": ["orders-storage.claim-sequences.item.post"]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/orders-storage/claim-sequences/{id}",
+          "permissionsRequired": ["orders-storage.claim-sequences.item.get"]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/orders-storage/claim-sequences/{id}",
+          "permissionsRequired": ["orders-storage.claim-sequences.item.put"]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/orders-storage/claim-sequences/{id}",
+          "permissionsRequired": ["orders-storage.claim-sequences.item.delete"]
+        }
+      ]
+    },
+    {
       "id": "acquisitions-units-storage.units",
       "version": "1.1",
       "handlers": [
@@ -1170,6 +1201,43 @@
       ]
     },
     {
+      "permissionName" : "orders-storage.claim-sequences.collection.get",
+      "displayName" : "claim-sequences-collection get",
+      "description" : "Get a collection of claim sequences"
+    },
+    {
+      "permissionName" : "orders-storage.claim-sequences.item.post",
+      "displayName" : "claim-sequences post",
+      "description" : "Create a new claim sequence"
+    },
+    {
+      "permissionName" : "orders-storage.claim-sequences.item.get",
+      "displayName" : "claim-sequences-item get",
+      "description" : "Fetch a claim sequence"
+    },
+    {
+      "permissionName" : "orders-storage.claim-sequences.item.put",
+      "displayName" : "claim-sequences-item put",
+      "description" : "Update a claim sequence"
+    },
+    {
+      "permissionName" : "orders-storage.claim-sequences.item.delete",
+      "displayName" : "claim-sequences-item delete",
+      "description" : "Delete a claim sequence"
+    },
+    {
+      "permissionName" : "orders-storage.claim-sequences.all",
+      "displayName" : "All claim-sequences perms",
+      "description" : "All permissions for the claim sequences",
+      "subPermissions" : [
+        "orders-storage.claim-sequences.collection.get",
+        "orders-storage.claim-sequences.item.post",
+        "orders-storage.claim-sequences.item.get",
+        "orders-storage.claim-sequences.item.put",
+        "orders-storage.claim-sequences.item.delete"
+      ]
+    },
+    {
       "permissionName" : "acquisitions-units-storage.units.collection.get",
       "displayName" : "acquisitions-units-collection get",
       "description" : "Get a collection of acquisitions units"
@@ -1626,6 +1694,7 @@
         "orders-storage.order-invoice-relationships.all",
         "orders-storage.order-templates.all",
         "orders-storage.order-template-categories.all",
+        "orders-storage.claim-sequences.all",
         "acquisitions-units-storage.units.all",
         "acquisitions-units-storage.memberships.all",
         "orders-storage.configuration.reasons-for-closure.all",

@@ -16,5 +16,6 @@ public final class TableNames {
   public static final String ROUTING_LIST_TABLE = "routing_list";
   public static final String ORDER_NUMBER_TABLE = "order_number";
   public static final String BATCH_TRACKING_TABLE = "batch_tracking";
+  public static final String CLAIM_SEQUENCES_TABLE = "claim_sequences";
 
 }

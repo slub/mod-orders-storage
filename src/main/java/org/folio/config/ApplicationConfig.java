@@ -22,6 +22,9 @@ import org.folio.rest.jaxrs.model.CreateInventoryType;
 import org.folio.rest.jaxrs.model.OrderLinePatchOperationType;
 import org.folio.service.UserService;
 import org.folio.services.batch.BatchTrackingService;
+import org.folio.services.claiming.ClaimSequenceNormalizer;
+import org.folio.services.claiming.ClaimSequenceService;
+import org.folio.services.claiming.ClaimSequenceValidator;
 import org.folio.services.consortium.ConsortiumConfigurationService;
 import org.folio.services.inventory.HoldingsService;
 import org.folio.services.inventory.InstancesService;
@@ -222,6 +225,22 @@ public class ApplicationConfig {
   @Bean
   OrderTemplateCategoryService orderTemplateCategoryService() {
     return new OrderTemplateCategoryService();
+  }
+
+  @Bean
+  ClaimSequenceNormalizer claimSequenceNormalizer() {
+    return new ClaimSequenceNormalizer();
+  }
+
+  @Bean
+  ClaimSequenceValidator claimSequenceValidator() {
+    return new ClaimSequenceValidator();
+  }
+
+  @Bean
+  ClaimSequenceService claimSequenceService(ClaimSequenceNormalizer claimSequenceNormalizer,
+                                                  ClaimSequenceValidator claimSequenceValidator) {
+    return new ClaimSequenceService(claimSequenceNormalizer, claimSequenceValidator);
   }
 
   @Bean
