@@ -1,6 +1,7 @@
 ## 15.0.0 - Unreleased
 
 ### Stories
+* MODORDSTOR-539 - Store the claim sequence on pieces (`claimSequence`)
 * MODORDSTOR-538 - Store the claim sequence on the PO line (`claimSequenceId`)
 * MODORDSTOR-537 - Add claim sequences (stages with delivery type, transmission method, interval and notes)
 * [MODORDSTOR-526](https://folio-org.atlassian.net/browse/MODORDSTOR-526) - Support export transmission method on purchase order lines
