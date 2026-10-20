@@ -1,6 +1,7 @@
 ## 15.0.0 - Unreleased
 
 ### Stories
+* [MODORDSTOR-538](https://folio-org.atlassian.net/browse/MODORDSTOR-538) - Store the claim sequence on the PO line (`claimSequenceId`)
 * [MODORDSTOR-537](https://folio-org.atlassian.net/browse/MODORDSTOR-537) - Add claim sequences (stages with delivery type, transmission method, interval and notes)
 * [FCFIELDS-95](https://folio-org.atlassian.net/browse/FCFIELDS-95) - Provide custom field sections (`/custom-field-sections`) of folio-custom-fields
 * [MODORDSTOR-526](https://folio-org.atlassian.net/browse/MODORDSTOR-526) - Support export transmission method on purchase order lines
