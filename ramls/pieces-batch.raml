@@ -9,6 +9,7 @@ documentation:
 
 types:
   pieces-collection: !include acq-models/mod-orders-storage/schemas/piece_collection.json
+  piece-claim-collection: !include acq-models/mod-orders-storage/schemas/piece_claim_collection.json
   errors: !include raml-util/schemas/errors.schema
 
 traits:
@@ -75,3 +76,41 @@ traits:
         body:
           text/plain:
             example: "internal server error, contact administrator"
+  /claims:
+    displayName: Write pieces of a claim
+    description: Update the pieces of a claim, including their claim sequence. The only way to set, change or remove piece.claimSequence; intended for mod-orders only.
+    post:
+      description: "Update the pieces of a claim in one transaction (all or nothing)"
+      body:
+        application/json:
+          type: piece-claim-collection
+          example:
+            strict: false
+            value: !include acq-models/mod-orders-storage/examples/piece_claim_collection.sample
+      responses:
+        204:
+          description: "Pieces successfully updated"
+        400:
+          description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
+          body:
+            text/plain:
+              example: "unable to update pieces -- malformed JSON at 13:4"
+        404:
+          description: "At least one piece was not found; no piece was updated"
+          body:
+            application/json:
+              example:
+                strict: false
+                value: !include raml-util/examples/errors.sample
+        422:
+          description: "Unprocessable entity, e.g. an invalid claimSequence"
+          body:
+            application/json:
+              example:
+                strict: false
+                value: !include raml-util/examples/errors.sample
+        500:
+          description: "Internal server error, e.g. due to misconfiguration"
+          body:
+            text/plain:
+              example: "internal server error, contact administrator"

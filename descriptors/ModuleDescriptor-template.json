@@ -4,7 +4,7 @@
   "provides": [
     {
       "id": "orders-storage.pieces",
-      "version": "5.0",
+      "version": "5.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -40,6 +40,11 @@
           "methods": ["PUT"],
           "pathPattern": "/orders-storage/pieces-batch",
           "permissionsRequired": ["orders-storage.pieces-batch.collection.put"]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/orders-storage/pieces-batch/claims",
+          "permissionsRequired": ["orders-storage.pieces-batch.claims.post"]
         }
       ]
     },
@@ -822,6 +827,11 @@
       "description" : "Update a set of Pieces in a batch"
     },
     {
+      "permissionName" : "orders-storage.pieces-batch.claims.post",
+      "displayName" : "Pieces batch claim update",
+      "description" : "Update the pieces of a claim, including their claim sequence"
+    },
+    {
       "permissionName" : "orders-storage.pieces.all",
       "displayName" : "All orders-storage pieces perms",
       "description" : "All permissions for the orders-storage-pieces",
@@ -832,7 +842,8 @@
         "orders-storage.pieces.item.put",
         "orders-storage.pieces.item.delete",
         "orders-storage.pieces-batch.collection.post",
-        "orders-storage.pieces-batch.collection.put"
+        "orders-storage.pieces-batch.collection.put",
+        "orders-storage.pieces-batch.claims.post"
       ]
     },
     {

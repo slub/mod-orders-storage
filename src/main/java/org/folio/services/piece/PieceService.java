@@ -108,6 +108,8 @@ public class PieceService {
 
   public Future<String> createPiece(Conn conn, Piece piece, String tenantId) {
     piece.setStatusUpdatedDate(new Date());
+    // a new piece has never been claimed, the claim sequence is only set by updateClaimedPieces
+    piece.setClaimSequence(null);
     if (StringUtils.isBlank(piece.getId())) {
       piece.setId(UUID.randomUUID().toString());
     }
@@ -128,6 +130,7 @@ public class PieceService {
       if (StringUtils.isBlank(piece.getId())) {
         piece.setId(UUID.randomUUID().toString());
       }
+      piece.setClaimSequence(null);
       populateMetadata(piece::getMetadata, piece::withMetadata, okapiHeaders);
     }
     var pieceIds = extractEntityFields(pieces, Piece::getId);
@@ -142,6 +145,10 @@ public class PieceService {
     log.debug("updatePiece:: Updating piece: '{}'", id);
     return shiftSequenceNumbersIfNeeded(id, piece, conn, tenantId)
       .compose(v -> getPieceByIdForUpdate(id, conn))
+      .map(originalPiece -> {
+        keepStoredClaimSequence(piece, originalPiece.orElse(null));
+        return originalPiece;
+      })
       .compose(originalPiece -> conn.update(TableNames.PIECES_TABLE, piece, id)
         .compose(DbUtils::failOnNoUpdateOrDelete)
         .map(AuditEntityWrapper.of(piece, originalPiece.orElse(null))))
@@ -191,13 +198,60 @@ public class PieceService {
       log.warn("updatePieces:: Pieces list is empty, skipping the update");
       return Future.succeededFuture(List.of());
     }
-    String query = buildUpdatePieceBatchQuery(pieces, tenantId);
     return getPiecesByIdsForUpdate(mapTo(pieces, Piece::getId), tenantId, conn)
-      .compose(originalPieces -> conn.execute(query)
-        .map(rows -> DbUtils.getRowSetAsList(rows, Piece.class))
-        .map(updatedPieces -> AuditEntityWrapper.listOf(updatedPieces, originalPieces, Piece::getId)))
+      .compose(originalPieces -> {
+        var originalPiecesById = StreamEx.of(originalPieces).toMap(Piece::getId, piece -> piece);
+        pieces.forEach(piece -> keepStoredClaimSequence(piece, originalPiecesById.get(piece.getId())));
+        return updatePiecesBatch(pieces, originalPieces, conn, tenantId);
+      });
+  }
+
+  /**
+   * Updates the pieces of a claim as sent, including their claim sequence - the only write path that may set, change or
+   * remove {@code claimSequence}. All or nothing: fails with 404 if any piece does not exist. The sequence number is
+   * written as sent, a claim does not change it.
+   *
+   * @param pieces   complete pieces to store
+   * @param conn     database connection of the surrounding transaction
+   * @param tenantId tenant identifier
+   * @return Future with the list of updated pieces wrapped with their original state
+   */
+  public Future<List<AuditEntityWrapper<Piece>>> updateClaimedPieces(List<Piece> pieces, Conn conn, String tenantId) {
+    if (CollectionUtils.isEmpty(pieces)) {
+      log.warn("updateClaimedPieces:: Pieces list is empty, skipping the update");
+      return Future.succeededFuture(List.of());
+    }
+    var pieceIds = StreamEx.of(pieces).map(Piece::getId).distinct().toList();
+    return getPiecesByIdsForUpdate(pieceIds, tenantId, conn)
+      .compose(originalPieces -> {
+        var foundIds = extractEntityFields(originalPieces, Piece::getId);
+        var missingIds = StreamEx.of(pieceIds).remove(foundIds::contains).toList();
+        if (!missingIds.isEmpty()) {
+          return Future.failedFuture(new HttpException(Response.Status.NOT_FOUND.getStatusCode(), "Pieces not found: " + missingIds));
+        }
+        return updatePiecesBatch(pieces, originalPieces, conn, tenantId);
+      });
+  }
+
+  private Future<List<AuditEntityWrapper<Piece>>> updatePiecesBatch(List<Piece> pieces, List<Piece> originalPieces,
+                                                                    Conn conn, String tenantId) {
+    String query = buildUpdatePieceBatchQuery(pieces, tenantId);
+    return conn.execute(query)
+      .map(rows -> DbUtils.getRowSetAsList(rows, Piece.class))
+      .map(updatedPieces -> AuditEntityWrapper.listOf(updatedPieces, originalPieces, Piece::getId))
       .onSuccess(ar -> log.info("updatePieces:: completed, query={}", query))
       .onFailure(t -> log.error("updatePieces:: failed, query={}", query, t));
+  }
+
+  /**
+   * Generic piece writes never change the claim sequence, only {@link #updateClaimedPieces} does.
+   */
+  private void keepStoredClaimSequence(Piece piece, Piece originalPiece) {
+    var storedClaimSequence = originalPiece == null ? null : originalPiece.getClaimSequence();
+    if (!Objects.equals(piece.getClaimSequence(), storedClaimSequence)) {
+      log.debug("keepStoredClaimSequence:: Ignoring claimSequence change of piece: '{}'", piece.getId());
+    }
+    piece.setClaimSequence(storedClaimSequence);
   }
 
   private String buildUpdatePieceBatchQuery(Collection<Piece> pieces, String tenantId) {

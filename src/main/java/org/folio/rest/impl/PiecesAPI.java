@@ -19,6 +19,8 @@ import org.folio.event.service.AuditOutboxService;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.BaseApi;
 import org.folio.rest.jaxrs.model.Piece;
+import org.folio.rest.jaxrs.model.PieceClaim;
+import org.folio.rest.jaxrs.model.PieceClaimCollection;
 import org.folio.rest.jaxrs.model.PieceAuditEvent;
 import org.folio.rest.jaxrs.model.PieceCollection;
 import org.folio.rest.jaxrs.model.PiecesCollection;
@@ -158,6 +160,30 @@ public class PiecesAPI extends BaseApi implements OrdersStoragePieces, OrdersSto
           asyncResultHandler.handle(buildNoContentResponse());
         } else {
           log.error("putOrdersStoragePiecesBatch:: Failed to update pieces: {}", piecesIds, ar.cause());
+          asyncResultHandler.handle(buildErrorResponse(ar.cause()));
+        }
+      });
+  }
+
+  @Override
+  @Validate
+  public void postOrdersStoragePiecesBatchClaims(PieceClaimCollection pieceClaimCollection, Map<String, String> okapiHeaders,
+                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    var pieces = pieceClaimCollection.getPieceClaims().stream()
+      .map(PieceClaim::getPiece)
+      .map(piece -> populateMetadata(piece::getMetadata, piece::withMetadata, okapiHeaders))
+      .toList();
+    var piecesIds = extractEntityFields(pieces, Piece::getId);
+    log.info("postOrdersStoragePiecesBatchClaims:: Updating {} claimed pieces: {}", piecesIds.size(), piecesIds);
+    pgClient.withTrans(conn -> pieceService.updateClaimedPieces(pieces, conn, TenantTool.tenantId(okapiHeaders))
+        .compose(wrappedPieces -> auditOutboxService.savePiecesOutboxLog(conn, wrappedPieces, PieceAuditEvent.Action.EDIT, okapiHeaders)))
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          log.info("postOrdersStoragePiecesBatchClaims:: Successfully updated claimed pieces: {}", piecesIds);
+          auditOutboxService.processOutboxEventLogs(okapiHeaders);
+          asyncResultHandler.handle(buildNoContentResponse());
+        } else {
+          log.error("postOrdersStoragePiecesBatchClaims:: Failed to update claimed pieces: {}", piecesIds, ar.cause());
           asyncResultHandler.handle(buildErrorResponse(ar.cause()));
         }
       });
