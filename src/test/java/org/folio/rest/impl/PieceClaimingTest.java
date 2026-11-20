@@ -132,9 +132,13 @@ public class PieceClaimingTest extends TestBase {
     assertEquals("Claimed", updated.getComment());
     assertEquals(claiming, updated.getClaiming());
 
-    // claiming without sequence is accepted and removes the sequence
+    // claiming without sequence is accepted and stored as no claiming at all (one form for "no sequence")
     putPiecesBatch(updated.withClaiming(new PieceClaiming())).then().statusCode(204);
-    assertNull(getPiece(piece.getId()).getClaiming().getSequence());
+    assertNull(getPiece(piece.getId()).getClaiming());
+
+    putPiecesBatch(getPiece(piece.getId()).withClaiming(claiming)).then().statusCode(204);
+    putPiece(getPiece(piece.getId()).withClaiming(new PieceClaiming())).then().statusCode(204);
+    assertNull(getPiece(piece.getId()).getClaiming());
 
     putPiecesBatch(getPiece(piece.getId()).withClaiming(null)).then().statusCode(204);
     assertNull(getPiece(piece.getId()).getClaiming());
