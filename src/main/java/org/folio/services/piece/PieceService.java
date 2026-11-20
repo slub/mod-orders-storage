@@ -108,11 +108,10 @@ public class PieceService {
 
   public Future<String> createPiece(Conn conn, Piece piece, String tenantId) {
     piece.setStatusUpdatedDate(new Date());
-    // a new piece has never been claimed
-    piece.setClaiming(null);
     if (StringUtils.isBlank(piece.getId())) {
       piece.setId(UUID.randomUUID().toString());
     }
+    dropClaiming(piece);
     log.debug("createPiece:: Creating new piece: '{}'", piece.getId());
 
     return shiftSequenceNumbersIfNeeded(List.of(piece), conn, tenantId)
@@ -130,7 +129,7 @@ public class PieceService {
       if (StringUtils.isBlank(piece.getId())) {
         piece.setId(UUID.randomUUID().toString());
       }
-      piece.setClaiming(null);
+      dropClaiming(piece);
       populateMetadata(piece::getMetadata, piece::withMetadata, okapiHeaders);
     }
     var pieceIds = extractEntityFields(pieces, Piece::getId);
@@ -143,6 +142,7 @@ public class PieceService {
 
   public Future<AuditEntityWrapper<Piece>> updatePiece(String id, Piece piece, Conn conn, String tenantId) {
     log.debug("updatePiece:: Updating piece: '{}'", id);
+    normalizeClaiming(piece);
     return shiftSequenceNumbersIfNeeded(id, piece, conn, tenantId)
       .compose(v -> getPieceByIdForUpdate(id, conn))
       .compose(originalPiece -> conn.update(TableNames.PIECES_TABLE, piece, id)
@@ -194,6 +194,7 @@ public class PieceService {
       log.warn("updatePieces:: Pieces list is empty, skipping the update");
       return Future.succeededFuture(List.of());
     }
+    pieces.forEach(PieceService::normalizeClaiming);
     String query = buildUpdatePieceBatchQuery(pieces, tenantId);
     return getPiecesByIdsForUpdate(mapTo(pieces, Piece::getId), tenantId, conn)
       .compose(originalPieces -> conn.execute(query)
@@ -201,6 +202,25 @@ public class PieceService {
         .map(updatedPieces -> AuditEntityWrapper.listOf(updatedPieces, originalPieces, Piece::getId)))
       .onSuccess(ar -> log.info("updatePieces:: completed, query={}", query))
       .onFailure(t -> log.error("updatePieces:: failed, query={}", query, t));
+  }
+
+  /**
+   * A new piece has never been claimed, so {@code claiming} sent on create is dropped.
+   */
+  private static void dropClaiming(Piece piece) {
+    if (piece.getClaiming() != null) {
+      log.debug("dropClaiming:: Ignoring claiming sent on create of piece: '{}'", piece.getId());
+      piece.setClaiming(null);
+    }
+  }
+
+  /**
+   * Stores "no claim sequence" in one form only: {@code claiming} without {@code sequence} is removed.
+   */
+  private static void normalizeClaiming(Piece piece) {
+    if (piece.getClaiming() != null && piece.getClaiming().getSequence() == null) {
+      piece.setClaiming(null);
+    }
   }
 
   private String buildUpdatePieceBatchQuery(Collection<Piece> pieces, String tenantId) {
