@@ -30,8 +30,8 @@ import org.folio.StorageTestSuite;
 import org.folio.event.AuditEventType;
 import org.folio.rest.jaxrs.model.Piece;
 import org.folio.rest.jaxrs.model.PieceAuditEvent;
-import org.folio.rest.jaxrs.model.PieceClaiming;
-import org.folio.rest.jaxrs.model.PieceClaimingSequence;
+import org.folio.rest.jaxrs.model.PieceClaim;
+import org.folio.rest.jaxrs.model.PieceClaimSequence;
 import org.folio.rest.jaxrs.model.PieceCollection;
 import org.folio.rest.jaxrs.model.PoLine;
 import org.folio.rest.jaxrs.model.PurchaseOrder;
@@ -45,11 +45,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Verifies that piece.claiming.sequence is stored as sent by the generic piece PUTs (absent = removed), validated on
+ * Verifies that piece.claim.sequence is stored as sent by the generic piece PUTs (absent = removed), validated on
  * both PUTs, dropped on creation and kept by the claiming timer.
  */
 @IsolatedTenant
-public class PieceClaimingTest extends TestBase {
+public class PieceClaimTest extends TestBase {
 
   private static final String PIECES_BATCH_ENDPOINT = "/orders-storage/pieces-batch";
 
@@ -93,55 +93,55 @@ public class PieceClaimingTest extends TestBase {
   }
 
   @Test
-  void testSinglePutStoresAndRemovesClaiming() throws MalformedURLException {
+  void testSinglePutStoresAndRemovesClaim() throws MalformedURLException {
     createOrderData();
     Piece piece = createPiece();
-    PieceClaiming claiming = claiming(2);
+    PieceClaim claim = claim(2);
 
-    putPiece(piece.withReceivingStatus(Piece.ReceivingStatus.CLAIM_SENT).withClaimingInterval(14).withClaiming(claiming))
+    putPiece(piece.withReceivingStatus(Piece.ReceivingStatus.CLAIM_SENT).withClaimingInterval(14).withClaim(claim))
       .then()
       .statusCode(204);
     Piece claimed = getPiece(piece.getId());
-    assertEquals(claiming, claimed.getClaiming());
+    assertEquals(claim, claimed.getClaim());
     assertEquals(14, claimed.getClaimingInterval());
 
     // the wrapper pieces view returns the stored piece jsonb
     getDataById("/orders-storage/wrapper-pieces/{id}", piece.getId(), headers)
       .then()
       .statusCode(200)
-      .body("piece.claiming.sequence.id", equalTo(claiming.getSequence().getId()))
-      .body("piece.claiming.sequence.stage", equalTo(2));
+      .body("piece.claim.sequence.id", equalTo(claim.getSequence().getId()))
+      .body("piece.claim.sequence.stage", equalTo(2));
 
-    // stored as sent: a changed value replaces it, a piece without claiming removes it
-    PieceClaiming changed = claiming(3);
-    putPiece(claimed.withClaiming(changed)).then().statusCode(204);
-    assertEquals(changed, getPiece(piece.getId()).getClaiming());
+    // stored as sent: a changed value replaces it, a piece without claim removes it
+    PieceClaim changed = claim(3);
+    putPiece(claimed.withClaim(changed)).then().statusCode(204);
+    assertEquals(changed, getPiece(piece.getId()).getClaim());
 
-    putPiece(getPiece(piece.getId()).withClaiming(null)).then().statusCode(204);
-    assertNull(getPiece(piece.getId()).getClaiming());
+    putPiece(getPiece(piece.getId()).withClaim(null)).then().statusCode(204);
+    assertNull(getPiece(piece.getId()).getClaim());
   }
 
   @Test
-  void testBatchPutStoresAndRemovesClaiming() throws MalformedURLException {
+  void testBatchPutStoresAndRemovesClaim() throws MalformedURLException {
     createOrderData();
     Piece piece = createPiece();
 
-    PieceClaiming claiming = claiming(1);
-    putPiecesBatch(getPiece(piece.getId()).withComment("Claimed").withClaiming(claiming)).then().statusCode(204);
+    PieceClaim claim = claim(1);
+    putPiecesBatch(getPiece(piece.getId()).withComment("Claimed").withClaim(claim)).then().statusCode(204);
     Piece updated = getPiece(piece.getId());
     assertEquals("Claimed", updated.getComment());
-    assertEquals(claiming, updated.getClaiming());
+    assertEquals(claim, updated.getClaim());
 
-    // claiming without sequence is accepted and stored as no claiming at all (one form for "no sequence")
-    putPiecesBatch(updated.withClaiming(new PieceClaiming())).then().statusCode(204);
-    assertNull(getPiece(piece.getId()).getClaiming());
+    // claim without sequence is accepted and stored as no claim at all (one form for "no sequence")
+    putPiecesBatch(updated.withClaim(new PieceClaim())).then().statusCode(204);
+    assertNull(getPiece(piece.getId()).getClaim());
 
-    putPiecesBatch(getPiece(piece.getId()).withClaiming(claiming)).then().statusCode(204);
-    putPiece(getPiece(piece.getId()).withClaiming(new PieceClaiming())).then().statusCode(204);
-    assertNull(getPiece(piece.getId()).getClaiming());
+    putPiecesBatch(getPiece(piece.getId()).withClaim(claim)).then().statusCode(204);
+    putPiece(getPiece(piece.getId()).withClaim(new PieceClaim())).then().statusCode(204);
+    assertNull(getPiece(piece.getId()).getClaim());
 
-    putPiecesBatch(getPiece(piece.getId()).withClaiming(null)).then().statusCode(204);
-    assertNull(getPiece(piece.getId()).getClaiming());
+    putPiecesBatch(getPiece(piece.getId()).withClaim(null)).then().statusCode(204);
+    assertNull(getPiece(piece.getId()).getClaim());
   }
 
   @Test
@@ -149,26 +149,26 @@ public class PieceClaimingTest extends TestBase {
     createOrderData();
     Piece piece = createPiece();
     // a sequence chosen for the piece before any stage of it was sent
-    PieceClaiming claiming = new PieceClaiming().withSequence(new PieceClaimingSequence().withId(UUID.randomUUID().toString()));
+    PieceClaim claim = new PieceClaim().withSequence(new PieceClaimSequence().withId(UUID.randomUUID().toString()));
 
-    putPiecesBatch(piece.withClaiming(claiming)).then().statusCode(204);
+    putPiecesBatch(piece.withClaim(claim)).then().statusCode(204);
 
     Piece stored = getPiece(piece.getId());
-    assertEquals(claiming.getSequence().getId(), stored.getClaiming().getSequence().getId());
-    assertNull(stored.getClaiming().getSequence().getStage());
+    assertEquals(claim.getSequence().getId(), stored.getClaim().getSequence().getId());
+    assertNull(stored.getClaim().getSequence().getStage());
   }
 
   @Test
-  void testSinglePutRejectsInvalidClaiming() throws MalformedURLException {
+  void testSinglePutRejectsInvalidClaim() throws MalformedURLException {
     createOrderData();
     Piece piece = createPiece();
 
-    for (JsonObject invalid : invalidClaimings()) {
-      putData(PIECE.getEndpointWithId(), piece.getId(), mapFrom(piece).put("claiming", invalid).encode(), headers)
+    for (JsonObject invalid : invalidClaims()) {
+      putData(PIECE.getEndpointWithId(), piece.getId(), mapFrom(piece).put("claim", invalid).encode(), headers)
         .then()
         .statusCode(422);
     }
-    assertNull(getPiece(piece.getId()).getClaiming());
+    assertNull(getPiece(piece.getId()).getClaim());
   }
 
   @Test
@@ -187,56 +187,56 @@ public class PieceClaimingTest extends TestBase {
       JsonObject body = new JsonObject()
         .put("pieces", List.of(
           mapFrom(other.withComment("Changed by batch PUT")),
-          mapFrom(piece).put("claiming", new JsonObject().put("sequence", invalid))))
+          mapFrom(piece).put("claim", new JsonObject().put("sequence", invalid))))
         .put("totalRecords", 2);
       putData(PIECES_BATCH_ENDPOINT, body.encode(), headers)
         .then()
         .statusCode(422)
-        .body("errors[0].parameters[0].key", startsWith("pieces[1].claiming.sequence."));
+        .body("errors[0].parameters[0].key", startsWith("pieces[1].claim.sequence."));
     }
-    assertNull(getPiece(piece.getId()).getClaiming());
+    assertNull(getPiece(piece.getId()).getClaim());
     assertNotEquals("Changed by batch PUT", getPiece(other.getId()).getComment());
   }
 
   @Test
-  void testBatchPutRejectsUnknownClaimingProperty() throws MalformedURLException {
+  void testBatchPutRejectsUnknownClaimProperty() throws MalformedURLException {
     createOrderData();
     Piece piece = createPiece();
 
-    JsonObject claiming = new JsonObject()
+    JsonObject claim = new JsonObject()
       .put("sequence", new JsonObject().put("id", UUID.randomUUID().toString()).put("stage", 1))
       .put("count", 1);
-    JsonObject body = new JsonObject().put("pieces", List.of(mapFrom(piece).put("claiming", claiming))).put("totalRecords", 1);
+    JsonObject body = new JsonObject().put("pieces", List.of(mapFrom(piece).put("claim", claim))).put("totalRecords", 1);
     // RMB rejects unknown properties (additionalProperties: false) with 422 before any write
     putData(PIECES_BATCH_ENDPOINT, body.encode(), headers)
       .then()
       .statusCode(422);
-    assertNull(getPiece(piece.getId()).getClaiming());
+    assertNull(getPiece(piece.getId()).getClaim());
   }
 
   @Test
-  void testPieceCreationDropsClaiming() throws MalformedURLException {
+  void testPieceCreationDropsClaim() throws MalformedURLException {
     createOrderData();
-    Piece piece = newPiece(1).withClaiming(claiming(1));
+    Piece piece = newPiece(1).withClaim(claim(1));
     createEntity(PIECE.getEndpoint(), mapFrom(piece).encode(), headers);
-    assertNull(getPiece(piece.getId()).getClaiming());
+    assertNull(getPiece(piece.getId()).getClaim());
 
-    Piece batchPiece = newPiece(2).withClaiming(claiming(1));
+    Piece batchPiece = newPiece(2).withClaim(claim(1));
     postData(PIECES_BATCH_ENDPOINT, Json.encode(new PieceCollection().withPieces(List.of(batchPiece)).withTotalRecords(1)), headers)
       .then()
       .statusCode(201);
-    assertNull(getPiece(batchPiece.getId()).getClaiming());
+    assertNull(getPiece(batchPiece.getId()).getClaim());
   }
 
   @Test
-  void testClaimingTimerKeepsClaiming() throws MalformedURLException {
+  void testClaimingTimerKeepsClaim() throws MalformedURLException {
     createOrderData();
     Piece piece = createPiece();
-    PieceClaiming claiming = claiming(1);
+    PieceClaim claim = claim(1);
     Date eligibleDate = Date.from(LocalDate.now().minusDays(2).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     putPiecesBatch(piece.withReceivingStatus(Piece.ReceivingStatus.CLAIM_SENT).withClaimingInterval(1)
-      .withStatusUpdatedDate(eligibleDate).withClaiming(claiming))
+      .withStatusUpdatedDate(eligibleDate).withClaim(claim))
       .then()
       .statusCode(204);
 
@@ -244,26 +244,26 @@ public class PieceClaimingTest extends TestBase {
 
     Piece late = getPiece(piece.getId());
     assertEquals(Piece.ReceivingStatus.LATE, late.getReceivingStatus());
-    assertEquals(claiming, late.getClaiming());
+    assertEquals(claim, late.getClaim());
   }
 
   @Test
-  void testBatchPutSendsAuditEventWithClaiming() throws MalformedURLException {
+  void testBatchPutSendsAuditEventWithClaim() throws MalformedURLException {
     createOrderData();
     Piece piece = createPiece();
-    PieceClaiming claiming = claiming(2);
+    PieceClaim claim = claim(2);
 
-    putPiecesBatch(piece.withClaiming(claiming)).then().statusCode(204);
+    putPiecesBatch(piece.withClaim(claim)).then().statusCode(204);
 
     List<String> events = StorageTestSuite.checkKafkaEventSent(ISOLATED_TENANT, AuditEventType.ACQ_PIECE_CHANGED.getTopicName(), 2, userId);
     assertEquals(2, events.size());
     checkPieceEventContent(events.get(0), PieceAuditEvent.Action.CREATE);
     checkPieceEventContent(events.get(1), PieceAuditEvent.Action.EDIT);
     PieceAuditEvent editEvent = Json.decodeValue(events.get(1), PieceAuditEvent.class);
-    assertTrue(JsonObject.mapFrom(editEvent.getPieceSnapshot()).encode().contains(claiming.getSequence().getId()));
+    assertTrue(JsonObject.mapFrom(editEvent.getPieceSnapshot()).encode().contains(claim.getSequence().getId()));
   }
 
-  private static List<JsonObject> invalidClaimings() {
+  private static List<JsonObject> invalidClaims() {
     return List.of(
       new JsonObject().put("sequence", new JsonObject().put("id", UUID.randomUUID().toString()).put("stage", 0)),
       new JsonObject().put("sequence", new JsonObject().put("stage", 1)),
@@ -304,7 +304,7 @@ public class PieceClaimingTest extends TestBase {
       .withTotalRecords(pieces.length)), headers);
   }
 
-  private static PieceClaiming claiming(int stage) {
-    return new PieceClaiming().withSequence(new PieceClaimingSequence().withId(UUID.randomUUID().toString()).withStage(stage));
+  private static PieceClaim claim(int stage) {
+    return new PieceClaim().withSequence(new PieceClaimSequence().withId(UUID.randomUUID().toString()).withStage(stage));
   }
 }

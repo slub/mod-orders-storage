@@ -111,7 +111,7 @@ public class PieceService {
     if (StringUtils.isBlank(piece.getId())) {
       piece.setId(UUID.randomUUID().toString());
     }
-    dropClaiming(piece);
+    dropClaim(piece);
     log.debug("createPiece:: Creating new piece: '{}'", piece.getId());
 
     return shiftSequenceNumbersIfNeeded(List.of(piece), conn, tenantId)
@@ -129,7 +129,7 @@ public class PieceService {
       if (StringUtils.isBlank(piece.getId())) {
         piece.setId(UUID.randomUUID().toString());
       }
-      dropClaiming(piece);
+      dropClaim(piece);
       populateMetadata(piece::getMetadata, piece::withMetadata, okapiHeaders);
     }
     var pieceIds = extractEntityFields(pieces, Piece::getId);
@@ -142,7 +142,7 @@ public class PieceService {
 
   public Future<AuditEntityWrapper<Piece>> updatePiece(String id, Piece piece, Conn conn, String tenantId) {
     log.debug("updatePiece:: Updating piece: '{}'", id);
-    normalizeClaiming(piece);
+    normalizeClaim(piece);
     return shiftSequenceNumbersIfNeeded(id, piece, conn, tenantId)
       .compose(v -> getPieceByIdForUpdate(id, conn))
       .compose(originalPiece -> conn.update(TableNames.PIECES_TABLE, piece, id)
@@ -194,7 +194,7 @@ public class PieceService {
       log.warn("updatePieces:: Pieces list is empty, skipping the update");
       return Future.succeededFuture(List.of());
     }
-    pieces.forEach(PieceService::normalizeClaiming);
+    pieces.forEach(PieceService::normalizeClaim);
     String query = buildUpdatePieceBatchQuery(pieces, tenantId);
     return getPiecesByIdsForUpdate(mapTo(pieces, Piece::getId), tenantId, conn)
       .compose(originalPieces -> conn.execute(query)
@@ -205,21 +205,21 @@ public class PieceService {
   }
 
   /**
-   * A new piece has never been claimed, so {@code claiming} sent on create is dropped.
+   * A new piece has never been claimed, so {@code claim} sent on create is dropped.
    */
-  private static void dropClaiming(Piece piece) {
-    if (piece.getClaiming() != null) {
-      log.debug("dropClaiming:: Ignoring claiming sent on create of piece: '{}'", piece.getId());
-      piece.setClaiming(null);
+  private static void dropClaim(Piece piece) {
+    if (piece.getClaim() != null) {
+      log.debug("dropClaim:: Ignoring claim sent on create of piece: '{}'", piece.getId());
+      piece.setClaim(null);
     }
   }
 
   /**
-   * Stores "no claim sequence" in one form only: {@code claiming} without {@code sequence} is removed.
+   * Stores "no claim sequence" in one form only: {@code claim} without {@code sequence} is removed.
    */
-  private static void normalizeClaiming(Piece piece) {
-    if (piece.getClaiming() != null && piece.getClaiming().getSequence() == null) {
-      piece.setClaiming(null);
+  private static void normalizeClaim(Piece piece) {
+    if (piece.getClaim() != null && piece.getClaim().getSequence() == null) {
+      piece.setClaim(null);
     }
   }
 
