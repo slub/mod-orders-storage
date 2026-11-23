@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.restassured.http.ContentType;
@@ -124,24 +123,22 @@ public class ClaimSequencesAPITest extends TestBase {
   }
 
   @Test
-  void testNotesAndDefaults() throws MalformedURLException {
-    JsonObject sequence = newSequence("Notes");
+  void testDefaults() throws MalformedURLException {
+    JsonObject sequence = newSequence("Defaults");
     sequence.remove("afterLastStage");
     sequence.remove("isActive");
-    JsonArray stages = sequence.getJsonArray("stages");
-    stages.getJsonObject(0).put("internalNote", "Sent by email").put("externalNote", "  ");
-    stages.getJsonObject(3).put("externalNote", "Please call back");
 
     String id = createEntity(CLAIM_SEQUENCE.getEndpoint(), sequence.encode(), headers);
 
     JsonObject stored = new JsonObject(getSequence(id).extract().asString());
-    JsonObject integration = stored.getJsonArray("stages").getJsonObject(0);
-    JsonObject manual = stored.getJsonArray("stages").getJsonObject(3);
     assertEquals("STOP", stored.getString("afterLastStage"));
     assertTrue(stored.getBoolean("isActive"));
-    assertEquals("Please call back", manual.getString("externalNote"));
-    assertEquals("Sent by email", integration.getString("internalNote"));
-    assertFalse(integration.containsKey("externalNote"));
+  }
+
+  @Test
+  void testStageNotesAreRejected() throws MalformedURLException {
+    postSequence(withFirstStage(newSequence("Internal note"), "internalNote", "Sent by email")).statusCode(422);
+    postSequence(withFirstStage(newSequence("External note"), "externalNote", "Please call back")).statusCode(422);
   }
 
   @Test

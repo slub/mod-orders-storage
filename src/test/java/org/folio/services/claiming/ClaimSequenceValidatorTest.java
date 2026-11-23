@@ -1,7 +1,6 @@
 package org.folio.services.claiming;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -35,17 +34,15 @@ public class ClaimSequenceValidatorTest {
   }
 
   @Test
-  void testNormalizeTrimsNamesAndDropsBlankNotes() {
+  void testNormalizeTrimsNames() {
     var claimSequence = sequence("  Serials  ",
-      manualStage("  Phone  ").withInternalNote("   ").withExternalNote(" Please call back "));
+      manualStage("  Phone  "));
 
     normalizer.normalize(claimSequence);
 
     var stage = claimSequence.getStages().getFirst();
     assertEquals("Serials", claimSequence.getName());
     assertEquals("Phone", stage.getName());
-    assertNull(stage.getInternalNote());
-    assertEquals(" Please call back ", stage.getExternalNote());
   }
 
   @Test
