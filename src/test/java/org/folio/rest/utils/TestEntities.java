@@ -12,6 +12,7 @@ public enum TestEntities {
   ORDER_INVOICE_RELNS("/orders-storage/order-invoice-relns", OrderInvoiceRelationship.class, TestData.OrderInvoiceRelationship.DEFAULT, "invoiceId", "e41e0161-2bc6-41f3-a6e7-34fc13250bf1", 0),
   ORDER_TEMPLATE("/orders-storage/order-templates", OrderTemplate.class, TestData.OrderTemplate.DEFAULT, "templateCode", "Amazon-A", 9),
   ORDER_TEMPLATE_CATEGORIES("/orders-storage/order-template-categories", OrderTemplateCategory.class, TestData.OrderTemplateCategory.DEFAULT, "name", "Non-Fiction", 2),
+  CLAIM_SEQUENCE("/orders-storage/claim-sequences", ClaimSequence.class, TestData.ClaimSequence.DEFAULT, "name", "Serials extended", 0),
   ACQUISITIONS_UNIT("/acquisitions-units-storage/units", AcquisitionsUnit.class, TestData.AcquisitionsUnit.DEFAULT, "name", "met", 1),
   ACQUISITION_METHOD("/orders-storage/acquisition-methods", AcquisitionMethod.class, TestData.AcquisitionMethods.DEFAULT, "value", "New Method", 0),
   ACQUISITIONS_UNIT_MEMBERSHIPS("/acquisitions-units-storage/memberships", AcquisitionsUnitMembership.class, TestData.AcquisitionsUnitMembership.DEFAULT, "userId", "f8e41958-a378-4051-ae6e-429d231acb66", 1),

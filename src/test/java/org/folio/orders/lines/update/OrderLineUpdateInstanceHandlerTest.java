@@ -154,6 +154,7 @@ public class OrderLineUpdateInstanceHandlerTest extends TestBase {
     String pieceId = UUID.randomUUID().toString();
     String instanceId = UUID.randomUUID().toString();
     String holdingId = UUID.randomUUID().toString();
+    String claimSequenceId = UUID.randomUUID().toString();
     final DBClient client = new DBClient(vertx, TEST_TENANT);
 
     Location location = new Location()
@@ -167,6 +168,7 @@ public class OrderLineUpdateInstanceHandlerTest extends TestBase {
       .withPurchaseOrderId(orderId)
       .withInstanceId(instanceId)
       .withTitleOrPackage(OLD_TITLE_NAME)
+      .withClaimSequenceId(claimSequenceId)
       .withOrderFormat(PoLine.OrderFormat.PHYSICAL_RESOURCE)
       .withPhysical(new Physical()
         .withCreateInventory(Physical.CreateInventory.INSTANCE_HOLDING_ITEM))
@@ -264,6 +266,7 @@ public class OrderLineUpdateInstanceHandlerTest extends TestBase {
           assertThat(actPoLine.getId(), is(poLineId));
           assertThat(actPoLine.getInstanceId(), is(newInstanceId));
           assertThat(actPoLine.getLocations().get(0).getHoldingId(), is(newHoldingId));
+          assertThat(actPoLine.getClaimSequenceId(), is(claimSequenceId));
         });
         testContext.completeNow();
       })));

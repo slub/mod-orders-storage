@@ -1,0 +1,57 @@
+#%RAML 1.0
+title: "mod-orders-storage"
+baseUri: http://github.com/folio-org/mod-orders-storage
+version: v1
+
+documentation:
+  - title: Claim sequences
+    content: <b>CRUD API to manage claim sequences and their stages. This API is intended for internal use only.</b>
+
+types:
+    claim-sequence: !include acq-models/mod-orders-storage/schemas/claim_sequence.json
+    claim-sequence-collection: !include acq-models/mod-orders-storage/schemas/claim_sequence_collection.json
+    errors: !include raml-util/schemas/errors.schema
+    UUID:
+     type: string
+     pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+    validate: !include raml-util/traits/validation.raml
+    pageable:  !include raml-util/traits/pageable.raml
+    searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+    collection: !include raml-util/rtypes/collection.raml
+    collection-item: !include raml-util/rtypes/item-collection.raml
+
+/orders-storage/claim-sequences:
+  type:
+    collection:
+      exampleCollection: !include acq-models/mod-orders-storage/examples/claim_sequence_collection.sample
+      exampleItem: !include acq-models/mod-orders-storage/examples/claim_sequence_post.sample
+      schemaCollection: claim-sequence-collection
+      schemaItem: claim-sequence
+  post:
+    description: Create a claim sequence; stage numbers are assigned from the position in the stages list
+    is: [validate]
+  get:
+    description: Get list of claim sequences, sorted by name unless the query contains sortBy
+    is: [
+      searchable: {description: "with valid searchable fields: for example name", example: "[\"name\", \"Serials standard\", \"=\"]"},
+      pageable
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a claim sequence
+        type: UUID
+    type:
+      collection-item:
+        exampleItem: !include acq-models/mod-orders-storage/examples/claim_sequence_get.sample
+        schema: claim-sequence
+    put:
+      description: Update a claim sequence; requires the current _version
+      is: [validate]
+    delete:
+      description: Delete a claim sequence
+      is: [validate]

@@ -45,6 +45,7 @@ import org.folio.rest.core.RestClientTest;
 import org.folio.rest.impl.AcquisitionMethodDeprecatedQueryTest;
 import org.folio.rest.impl.BatchTrackingAPITest;
 import org.folio.rest.impl.ClaimingAPITest;
+import org.folio.rest.impl.ClaimSequencesAPITest;
 import org.folio.rest.impl.CustomFieldsAPITest;
 import org.folio.rest.impl.CustomFieldsIndexesTest;
 import org.folio.rest.impl.EntitiesCrudTest;
@@ -52,6 +53,8 @@ import org.folio.rest.impl.EntititesCustomFieldsTest;
 import org.folio.rest.impl.HelperUtilsTest;
 import org.folio.rest.impl.OrdersAPITest;
 import org.folio.rest.impl.PiecesAPITest;
+import org.folio.rest.impl.PieceClaimTest;
+import org.folio.rest.impl.PoLineClaimSequenceIdTest;
 import org.folio.rest.impl.PoLineTransmissionMethodQueryTest;
 import org.folio.rest.impl.PoLineBatchAPITest;
 import org.folio.rest.impl.PoNumberTest;
@@ -73,6 +76,7 @@ import org.folio.util.AuditUtilsTest;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.client.test.HttpClientMock2;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.services.claiming.ClaimSequenceValidatorTest;
 import org.folio.services.consortium.ConsortiumConfigurationServiceTest;
 import org.folio.services.inventory.HoldingsServiceTest;
 import org.folio.services.inventory.InventoryUpdateServiceTest;
@@ -293,6 +297,10 @@ public class StorageTestSuite {
   @Nested
   class EntitiesCrudTestNested extends EntitiesCrudTest {}
   @Nested
+  class ClaimSequencesAPITestNested extends ClaimSequencesAPITest {}
+  @Nested
+  class ClaimSequenceValidatorTestNested extends ClaimSequenceValidatorTest {}
+  @Nested
   class OrdersAPITestNested extends OrdersAPITest {}
   @Nested
   class PiecesAPITestNested extends PiecesAPITest {}
@@ -392,4 +400,10 @@ public class StorageTestSuite {
 
   @Nested
   class PoLineTransmissionMethodQueryTestNested extends PoLineTransmissionMethodQueryTest {}
+
+  @Nested
+  class PoLineClaimSequenceIdTestNested extends PoLineClaimSequenceIdTest {}
+
+  @Nested
+  class PieceClaimTestNested extends PieceClaimTest {}
 }
